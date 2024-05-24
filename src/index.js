@@ -10,7 +10,6 @@ var wordEmptyKeyArray = {};
 var answer = "";
 var answers = [];
 var gameOver = false;
-var nbOfAnswers;
 let enterKeyPressed = false;
 
 getRandomWord();
@@ -40,8 +39,7 @@ function createBoard(secretWord, nbEssai) {
         row.classList.add(i);
         for (let j = 0; j < secretWord.length; j++) {
             const cell = document.createElement("td");
-            cell.classList.add(i + '-' + j);
-            cell.classList.add('cell');
+            cell.classList.add(i + '-' + j, 'cell');
             row.appendChild(cell); 
         }
         table.appendChild(row); 
@@ -122,6 +120,7 @@ document.addEventListener('keyup', function(event) {
                 rowToShake.classList.remove('shake-row');
             }, 600);
         }
+        return;
     }
     if (event.key == "Backspace") {
         if (gameOver != true) { 
@@ -165,8 +164,7 @@ function update(secretWord, answer)  {
             const cellToTransform = document.getElementsByClassName(currentRow + '-' + i)[0];
             const keysToTransform = document.querySelectorAll('[data-key="'+ answer[i] + '"]');
             if (secondArray[i] === 'correct') {
-                cellToTransform.classList.remove('cell');
-                cellToTransform.classList.remove('full');
+                cellToTransform.classList.remove('cell', 'full');
                 cellToTransform.classList.add('correct');
 
                 keysToTransform.forEach(key => {
@@ -176,31 +174,27 @@ function update(secretWord, answer)  {
             }
             if (secondArray[i] === 'present') {
                 if (keysToTransform[0].classList.contains('key-correct')) {
-                    cellToTransform.classList.remove('cell');
-                    cellToTransform.classList.remove('full');
+                    cellToTransform.classList.remove('cell', 'full');
                     cellToTransform.classList.add('present');
                 } else {
                     keysToTransform.forEach(key => {
                         key.classList.remove('key');
                         key.classList.add('key-present');
                     });
-                    cellToTransform.classList.remove('cell');
-                    cellToTransform.classList.remove('full');
+                    cellToTransform.classList.remove('cell', 'full');
                     cellToTransform.classList.add('present');
                 }  
             }
             if (secondArray[i] === 'absent') {
                 if (keysToTransform[0].classList.contains('key-correct') || keysToTransform[0].classList.contains('key-present')) {
-                    cellToTransform.classList.remove('cell');
-                    cellToTransform.classList.remove('full');
+                    cellToTransform.classList.remove('cell', 'full');
                     cellToTransform.classList.add('absent');
                 } else {
                     keysToTransform.forEach(key => {
                         key.classList.remove('key');
                         key.classList.add('key-absent');
                     });
-                    cellToTransform.classList.remove('cell');
-                    cellToTransform.classList.remove('full');
+                    cellToTransform.classList.remove('cell', 'full');
                     cellToTransform.classList.add('absent');
                 }
             }
@@ -212,13 +206,13 @@ function update(secretWord, answer)  {
             const alert = document.getElementById("alert");
             const p = document.createElement("p");
             p.classList.add('alert-end');
-            let nbOfAnswers = "";
+            let tryOrTries = "";
             if(answers.length == 1 ) {
-                nbOfAnswers = "try"
+                tryOrTries = "try"
             } else {
-                nbOfAnswers = "tries";
+                tryOrTries = "tries";
             }
-            p.innerText = "Congratulations! You found the word in " + answers.length + " " + nbOfAnswers +".";
+            p.innerText = "Congratulations! You found the word in " + answers.length + " " + tryOrTries +".";
             alert.appendChild(p); 
         } else {
             currentRow++;
