@@ -58,6 +58,7 @@ async function checkIfWordExist(word) {
             return true;
         }
     } catch (error) {
+        return false;
         console.error('Erreur lors de la récupération des données:', error);
     }
 }
@@ -104,6 +105,19 @@ document.addEventListener('keyup', function(event) {
                 }
             })
             .catch(error => {
+                answer = "";
+                const alert = document.getElementById("alert");
+                const p = document.createElement("p");
+                const rowToShake = document.getElementsByClassName(currentRow)[0];
+                rowToShake.classList.add('shake-row');
+                p.classList.add('alert-word');
+                p.innerText = "Word is not in the list.";
+                alert.appendChild(p);
+                setTimeout(function() {
+                    alert.removeChild(p);
+                    rowToShake.classList.remove('shake-row');
+                    enterKeyPressed = false;
+                }, 600);
                 console.error('Erreur lors de la vérification du mot:', error);
             });
         } else {
@@ -293,6 +307,9 @@ function validate() {
                     answers.push(answer);
                     update(secretWord, answer);
                     answer = "";
+                    setTimeout(function() {
+                        enterKeyPressed = false;
+                    }, 600);
                 } else {
                     answer = "";
                     const alert = document.getElementById("alert");
@@ -301,7 +318,7 @@ function validate() {
                     rowToShake.classList.add('shake-row');
                     p.classList.add('alert-word');
                     p.innerText = "Word is not in the list.";
-                    alert.appendChild(p); 
+                    alert.appendChild(p);
                     setTimeout(function() {
                         alert.removeChild(p);
                         rowToShake.classList.remove('shake-row');
@@ -310,23 +327,36 @@ function validate() {
                 }
             })
             .catch(error => {
+                answer = "";
+                const alert = document.getElementById("alert");
+                const p = document.createElement("p");
+                const rowToShake = document.getElementsByClassName(currentRow)[0];
+                rowToShake.classList.add('shake-row');
+                p.classList.add('alert-word');
+                p.innerText = "Word is not in the list.";
+                alert.appendChild(p);
+                setTimeout(function() {
+                    alert.removeChild(p);
+                    rowToShake.classList.remove('shake-row');
+                    enterKeyPressed = false;
+                }, 600);
                 console.error('Erreur lors de la vérification du mot:', error);
             });
-        }
-        else {
+        } else {
             const alert = document.getElementById("alert");     
             const p = document.createElement("p");
-            const rowToShake = document.getElementsByClassName(currentRow)[0];
-            rowToShake.classList.add('shake-row');
             p.classList.add('alert-word');
             p.innerText = "Word is too short.";
+            const rowToShake = document.getElementsByClassName(currentRow)[0];
+            rowToShake.classList.add('shake-row');
             alert.appendChild(p); 
             setTimeout(function() {
                 alert.removeChild(p);
-                rowToShake.classList.remove('shake-row');
                 enterKeyPressed = false;
+                rowToShake.classList.remove('shake-row');
             }, 600);
         }
+        return;
     }
 }
 
