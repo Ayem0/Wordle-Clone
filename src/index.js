@@ -2,14 +2,14 @@ const lettersUpperCase = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K',
 const lettersLowerCase = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
 const alphabet = lettersUpperCase.concat(lettersLowerCase);
 const nbOfTry = 6;
-var secretWord;
-var currentRow = 0;
-var currentCell = 0;
-var wordKeyArray = {};
-var wordEmptyKeyArray = {};
-var answer = "";
-var answers = [];
-var gameOver = false;
+let secretWord;
+let currentRow = 0;
+let currentCell = 0;
+let wordKeyArray = {};
+let wordEmptyKeyArray = {};
+let answer = "";
+let answers = [];
+let gameOver = false;
 let enterKeyPressed = false;
 
 getRandomWord();
@@ -40,120 +40,37 @@ function createBoard(secretWord, nbEssai) {
         for (let j = 0; j < secretWord.length; j++) {
             const cell = document.createElement("td");
             cell.classList.add(i + '-' + j, 'cell');
-            row.appendChild(cell); 
+            row.appendChild(cell);
         }
-        table.appendChild(row); 
+        table.appendChild(row);
     }
-    div.appendChild(table); 
+    div.appendChild(table);
 }
 
 async function checkIfWordExist(word) {
     const apiUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`;
-    try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) {
-            return false;
-        }
-        else {
-            return true;
-        }
-    } catch (error) {
+    const response = await fetch(apiUrl);
+    if (!response.ok) {
         return false;
-        console.error('Erreur lors de la récupération des données:', error);
+    }
+    else {
+        return true;
     }
 }
 
-document.addEventListener('keyup', function(event) {
+document.addEventListener('keyup', function (event) {
     if (alphabet.includes(event.key) && gameOver != true && currentCell < secretWord.length) {
-        const cellToTest = document.getElementsByClassName(currentRow + '-' + currentCell)[0];
-        if (cellToTest.innerText == "") {
-            cellToTest.innerText = event.key.toUpperCase();
-            cellToTest.classList.add('full');
-        }
-        if ( currentCell != secretWord.length-1) {
-            currentCell++;
-        }
+        insertCell(event.key.toUpperCase());
     }
     if (event.key == "Enter" && !enterKeyPressed && gameOver != true) {
-        enterKeyPressed = true;
-        const cellToTest = document.getElementsByClassName(currentRow + '-' + currentCell)[0];
-        if (currentCell == secretWord.length-1 && cellToTest.innerText != "" && gameOver != true) {
-            createAnswer();
-            checkIfWordExist(answer)
-            .then(exists => {
-                if (exists) {
-                    answers.push(answer);
-                    update(secretWord, answer);
-                    answer = "";
-                    setTimeout(function() {
-                        enterKeyPressed = false;
-                    }, 600);
-                } else {
-                    answer = "";
-                    const alert = document.getElementById("alert");
-                    const p = document.createElement("p");
-                    const rowToShake = document.getElementsByClassName(currentRow)[0];
-                    rowToShake.classList.add('shake-row');
-                    p.classList.add('alert-word');
-                    p.innerText = "Word is not in the list.";
-                    alert.appendChild(p);
-                    setTimeout(function() {
-                        alert.removeChild(p);
-                        rowToShake.classList.remove('shake-row');
-                        enterKeyPressed = false;
-                    }, 600);
-                }
-            })
-            .catch(error => {
-                answer = "";
-                const alert = document.getElementById("alert");
-                const p = document.createElement("p");
-                const rowToShake = document.getElementsByClassName(currentRow)[0];
-                rowToShake.classList.add('shake-row');
-                p.classList.add('alert-word');
-                p.innerText = "Word is not in the list.";
-                alert.appendChild(p);
-                setTimeout(function() {
-                    alert.removeChild(p);
-                    rowToShake.classList.remove('shake-row');
-                    enterKeyPressed = false;
-                }, 600);
-                console.error('Erreur lors de la vérification du mot:', error);
-            });
-        } else {
-            const alert = document.getElementById("alert");     
-            const p = document.createElement("p");
-            p.classList.add('alert-word');
-            p.innerText = "Word is too short.";
-            const rowToShake = document.getElementsByClassName(currentRow)[0];
-            rowToShake.classList.add('shake-row');
-            alert.appendChild(p); 
-            setTimeout(function() {
-                alert.removeChild(p);
-                enterKeyPressed = false;
-                rowToShake.classList.remove('shake-row');
-            }, 600);
-        }
-        return;
+        validate();
     }
     if (event.key == "Backspace") {
-        if (gameOver != true) { 
-            const cellToTest = document.getElementsByClassName(currentRow + '-' + currentCell)[0];
-            if (currentCell != 0 && cellToTest.innerText == "") {
-                currentCell--;
-                const cellToDelete = document.getElementsByClassName(currentRow + '-' + currentCell)[0];
-                cellToDelete.innerText = "";
-                cellToDelete.classList.remove('full');
-            }
-            else {
-                cellToTest.innerText = "";
-                cellToTest.classList.remove('full');
-            }
-        }
+        deleteCell();
     }
 });
 
-function update(secretWord, answer)  {
+function update(secretWord, answer) {
     let succes = 0;
     let testArray = Object.assign({}, wordKeyArray);
     let secondArray = Object.assign({}, wordEmptyKeyArray);
@@ -165,18 +82,18 @@ function update(secretWord, answer)  {
         }
     }
     for (let i = 0; i < secretWord.length; i++) {
-        setTimeout(function() {
+        setTimeout(function () {
             if (answer[i] != secretWord[i]) {
-                if (answer[i] in testArray && testArray[answer[i]] > 0) {   
-                    secondArray[i] = "present";             
+                if (answer[i] in testArray && testArray[answer[i]] > 0) {
+                    secondArray[i] = "present";
                     testArray[answer[i]]--;
-                } 
+                }
                 else {
                     secondArray[i] = "absent";
                 }
             }
             const cellToTransform = document.getElementsByClassName(currentRow + '-' + i)[0];
-            const keysToTransform = document.querySelectorAll('[data-key="'+ answer[i] + '"]');
+            const keysToTransform = document.querySelectorAll('[data-key="' + answer[i] + '"]');
             if (secondArray[i] === 'correct') {
                 cellToTransform.classList.remove('cell', 'full');
                 cellToTransform.classList.add('correct');
@@ -197,7 +114,7 @@ function update(secretWord, answer)  {
                     });
                     cellToTransform.classList.remove('cell', 'full');
                     cellToTransform.classList.add('present');
-                }  
+                }
             }
             if (secondArray[i] === 'absent') {
                 if (keysToTransform[0].classList.contains('key-correct') || keysToTransform[0].classList.contains('key-present')) {
@@ -214,20 +131,20 @@ function update(secretWord, answer)  {
             }
         }, 150 * i);
     }
-    setTimeout(function() {
-        if(succes == secretWord.length) {
+    setTimeout(function () {
+        if (succes == secretWord.length) {
             gameOver = true;
             const alert = document.getElementById("alert");
             const p = document.createElement("p");
             p.classList.add('alert-end');
             let tryOrTries = "";
-            if(answers.length == 1 ) {
+            if (answers.length == 1) {
                 tryOrTries = "try"
             } else {
                 tryOrTries = "tries";
             }
-            p.innerText = "Congratulations! You found the word in " + answers.length + " " + tryOrTries +".";
-            alert.appendChild(p); 
+            p.innerText = "Congratulations! You found the word in " + answers.length + " " + tryOrTries + ".";
+            alert.appendChild(p);
         } else {
             currentRow++;
             currentCell = 0;
@@ -237,10 +154,10 @@ function update(secretWord, answer)  {
                 const p = document.createElement("p");
                 p.classList.add('alert-end');
                 p.innerText = "Too bad! The word was " + secretWord + ".";
-                alert.appendChild(p); 
+                alert.appendChild(p);
             }
         }
-    }, 150 * secretWord.length); 
+    }, 150 * secretWord.length);
 }
 
 function deleteCell() {
@@ -266,7 +183,7 @@ function insertCell(letter) {
             cellToTest.innerText = letter;
             cellToTest.classList.add('full');
         }
-        if ( currentCell != secretWord.length-1) {
+        if (currentCell != secretWord.length - 1) {
             currentCell++;
         }
     }
@@ -296,21 +213,37 @@ function createAnswer() {
 }
 
 function validate() {
-    if(!enterKeyPressed && gameOver != true) {
+    if (!enterKeyPressed && gameOver != true) {
         enterKeyPressed = true;
         const cellToTest = document.getElementsByClassName(currentRow + '-' + currentCell)[0];
-        if (currentCell == secretWord.length-1 && cellToTest.innerText != "" && gameOver != true) {
+        if (currentCell == secretWord.length - 1 && cellToTest.innerText != "" && gameOver != true) {
             createAnswer();
             checkIfWordExist(answer)
-            .then(exists => {
-                if (exists) {
-                    answers.push(answer);
-                    update(secretWord, answer);
-                    answer = "";
-                    setTimeout(function() {
-                        enterKeyPressed = false;
-                    }, 600);
-                } else {
+                .then(exists => {
+                    if (exists) {
+                        answers.push(answer);
+                        update(secretWord, answer);
+                        answer = "";
+                        setTimeout(function () {
+                            enterKeyPressed = false;
+                        }, 600);
+                    } else {
+                        answer = "";
+                        const alert = document.getElementById("alert");
+                        const p = document.createElement("p");
+                        const rowToShake = document.getElementsByClassName(currentRow)[0];
+                        rowToShake.classList.add('shake-row');
+                        p.classList.add('alert-word');
+                        p.innerText = "Word is not in the list.";
+                        alert.appendChild(p);
+                        setTimeout(function () {
+                            alert.removeChild(p);
+                            rowToShake.classList.remove('shake-row');
+                            enterKeyPressed = false;
+                        }, 600);
+                    }
+                })
+                .catch(error => {
                     answer = "";
                     const alert = document.getElementById("alert");
                     const p = document.createElement("p");
@@ -319,44 +252,27 @@ function validate() {
                     p.classList.add('alert-word');
                     p.innerText = "Word is not in the list.";
                     alert.appendChild(p);
-                    setTimeout(function() {
+                    setTimeout(function () {
                         alert.removeChild(p);
                         rowToShake.classList.remove('shake-row');
                         enterKeyPressed = false;
                     }, 600);
-                }
-            })
-            .catch(error => {
-                answer = "";
-                const alert = document.getElementById("alert");
-                const p = document.createElement("p");
-                const rowToShake = document.getElementsByClassName(currentRow)[0];
-                rowToShake.classList.add('shake-row');
-                p.classList.add('alert-word');
-                p.innerText = "Word is not in the list.";
-                alert.appendChild(p);
-                setTimeout(function() {
-                    alert.removeChild(p);
-                    rowToShake.classList.remove('shake-row');
-                    enterKeyPressed = false;
-                }, 600);
-                console.error('Erreur lors de la vérification du mot:', error);
-            });
+                    console.error('Erreur lors de la vérification du mot:', error);
+                });
         } else {
-            const alert = document.getElementById("alert");     
+            const alert = document.getElementById("alert");
             const p = document.createElement("p");
             p.classList.add('alert-word');
             p.innerText = "Word is too short.";
             const rowToShake = document.getElementsByClassName(currentRow)[0];
             rowToShake.classList.add('shake-row');
-            alert.appendChild(p); 
-            setTimeout(function() {
+            alert.appendChild(p);
+            setTimeout(function () {
                 alert.removeChild(p);
                 enterKeyPressed = false;
                 rowToShake.classList.remove('shake-row');
             }, 600);
         }
-        return;
     }
 }
 
@@ -372,7 +288,7 @@ function closeDialog(dialogName) {
 
 function keyboardAzerty() {
     const azertyButton = document.getElementById('button-azerty');
-    if(azertyButton.classList.contains('unselected')) {
+    if (azertyButton.classList.contains('unselected')) {
         const azerty = document.getElementById('keyboard-azerty');
         const qwerty = document.getElementById('keyboard-qwerty');
         const qwertyButton = document.getElementById('button-qwerty');
